@@ -98,4 +98,40 @@ public class EmployeeServiceImpl implements EmployeeService {
         return new PageResult(page.getTotal(),page.getResult());
     }
 
+    /**
+     * employee status update
+     * @param status
+     * @param id
+     */
+    @Override
+    public Integer startOrFinish(Integer status, Long id) {
+        // Another ways to generate object -> Builder
+        Employee employee = Employee.builder().
+                status(status).
+                id(id).
+                updateTime(LocalDateTime.now()).
+                updateUser(BaseContext.getCurrentId()).build();
+        Integer count = employeeMapper.update(employee);
+        return count;
+    }
+
+    /**
+     * Employee find by id
+     * @param id
+     */
+    public Employee findById(Long id) {
+        Employee employee = employeeMapper.findById(id);
+        return employee;
+    }
+
+    @Override
+    public Integer updateEmployeeDetail(EmployeeDTO employeeDTO) {
+        Employee employee = new Employee();
+        BeanUtils.copyProperties(employeeDTO,employee);
+        employee.setUpdateUser(BaseContext.getCurrentId());
+        employee.setUpdateTime(LocalDateTime.now());
+        Integer count = employeeMapper.update(employee);
+        return count;
+    }
+
 }

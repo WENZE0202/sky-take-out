@@ -75,6 +75,6 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
     protected void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
         MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
         converter.setObjectMapper(new JacksonObjectMapper());
-        converters.add(1,converter);
+        converters.add(converter);
     }
 }

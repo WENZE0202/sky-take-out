@@ -25,6 +25,25 @@ public interface EmployeeService {
      * pagination inquiry
      * @param employeePageQueryDTO
      */
-
     PageResult pageQuery(EmployeePageQueryDTO employeePageQueryDTO);
+
+    /**
+     * employee status update
+     * @param status
+     * @param id
+     */
+    Integer startOrFinish(Integer status, Long id);
+
+    /**
+     * Employee find by id
+     * @param id
+     */
+    Employee findById(Long id);
+
+    /**
+     * Employee detail update
+     * @param employeeDTO
+     * @return
+     */
+    Integer updateEmployeeDetail(EmployeeDTO employeeDTO);
 }

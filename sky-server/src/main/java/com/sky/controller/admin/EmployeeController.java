@@ -27,7 +27,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/admin/employee")
 @Slf4j
-@Api(tags = "employee related api")
+@Api(tags = "Employee Related Api")
 public class EmployeeController {
 
     @Autowired
@@ -42,7 +42,7 @@ public class EmployeeController {
      * @return
      */
     @PostMapping("/login")
-    @ApiOperation(value = "employee login")
+    @ApiOperation(value = "Employee Login")
     public Result<EmployeeLoginVO> login(@RequestBody EmployeeLoginDTO employeeLoginDTO) {
         log.info("员工登录：{}", employeeLoginDTO);
 
@@ -72,7 +72,7 @@ public class EmployeeController {
      * @return
      */
     @PostMapping("/logout")
-    @ApiOperation(value = "employee logout")
+    @ApiOperation(value = "Employee Logout")
     public Result<String> logout() {
         return Result.success();
     }
@@ -83,7 +83,7 @@ public class EmployeeController {
      * @return
      */
     @PostMapping
-    @ApiOperation(value = "employee insert")
+    @ApiOperation(value = "Employee Insert")
     public Result insert(@RequestBody EmployeeDTO employeeDTO){
         log.info("employee insert: {}", employeeDTO);
         employeeService.insert(employeeDTO);
@@ -96,11 +96,55 @@ public class EmployeeController {
      * @return
      */
     @GetMapping("/page")
-    @ApiOperation(value = "employee pagination")
+    @ApiOperation(value = "Employee Pagination")
     public Result<PageResult> page(EmployeePageQueryDTO employeePageQueryDTO){
         log.info("pagination inquiry: {}", employeePageQueryDTO);
         PageResult pageResult = employeeService.pageQuery(employeePageQueryDTO);
         return Result.success(pageResult);
+    }
+
+    /**
+     * employee update status
+     * @param status
+     * @param id
+     * @return
+     */
+    @PostMapping ("/status/{status}")
+    @ApiOperation(value = "Employee Update Status")
+    public Result enableOrDisable(@PathVariable Integer status, Long id){
+        // update specific id employee status
+        Integer count = employeeService.startOrFinish(status, id);
+        if(count == 0){
+            return Result.error(MessageConstant.ACCOUNT_NOT_FOUND);
+        }
+        return Result.success();
+    }
+
+    /**
+     * Employee find by id
+     * @param id
+     * @return
+     */
+    @GetMapping("/{id}")
+    @ApiOperation("Employee find by id")
+    public Result findById(@PathVariable Long id){
+        Employee employee = employeeService.findById(id);
+        return Result.success(employee);
+    }
+
+    /**
+     * Employee detail update
+     * @param employeeDTO
+     * @return
+     */
+    @PutMapping
+    @ApiOperation("Employee detail update")
+    public Result updateEmployeeDetail(@RequestBody EmployeeDTO employeeDTO){
+        Integer count = employeeService.updateEmployeeDetail(employeeDTO);
+        if(count == 0){
+            return Result.error(MessageConstant.ACCOUNT_NOT_FOUND);
+        }
+        return Result.success();
     }
 
 }

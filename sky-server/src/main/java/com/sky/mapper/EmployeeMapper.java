@@ -33,4 +33,19 @@ public interface EmployeeMapper {
      * @return
      */
     Page<Employee> pageQuery(EmployeePageQueryDTO employeePageQueryDTO);
+
+    /**
+     * General update base on key value(id)
+     * @param employee
+     * @return
+     */
+    Integer update(Employee employee);
+
+    /**
+     * employee find by id
+     * @param id
+     * @return
+     */
+    @Select("select * from sky_take_out.employee where id = #{id}")
+    Employee findById(Long id);
 }
