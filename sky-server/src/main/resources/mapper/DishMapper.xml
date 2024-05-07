@@ -11,6 +11,7 @@
                 #{createTime}, #{updateTime}, #{createUser}, #{updateUser})
     </insert>
 
+
     <select id="page" resultType="com.sky.vo.DishVO">
         select d.*, c.name as categoryName from sky_take_out.dish d 
             inner join sky_take_out.category c on(d.category_id = c.id)
@@ -27,5 +28,13 @@
         </where>
         order by d.update_time desc
     </select>
+
+
+    <delete id="deleteByIds">
+        delete from sky_take_out.dish where id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </delete>
 
 </mapper>

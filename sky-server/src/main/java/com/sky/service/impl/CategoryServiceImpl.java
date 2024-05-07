@@ -78,11 +78,11 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public Integer deleteById(Long id) {
         // Business logic is b4 drop MUST determine there is no any item(dish/set-meal) exist
-        Integer count1 = dishMapper.selectById(id).size();
+        Integer count1 = dishMapper.selectByCategoryId(id).size();
         if(count1 > 0){
             throw new DeletionNotAllowedException(MessageConstant.CATEGORY_BE_RELATED_BY_DISH);
         }
-        Integer count2 = setMealMapper.selectById(id).size();
+        Integer count2 = setMealMapper.selectByCategoryId(id).size();
         if(count2 > 0){
             throw new DeletionNotAllowedException(MessageConstant.CATEGORY_BE_RELATED_BY_SETMEAL);
         }

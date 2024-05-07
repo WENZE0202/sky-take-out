@@ -2,6 +2,7 @@ package com.sky.mapper;
 
 import com.github.pagehelper.Page;
 import com.sky.annotation.AutoFill;
+import com.sky.dto.DishPageQueryDTO;
 import com.sky.entity.Dish;
 import com.sky.enumeration.OperationType;
 import com.sky.vo.DishVO;
@@ -16,11 +17,11 @@ import java.util.List;
 public interface DishMapper {
 
     /**
-     * Select dish by id
+     * Select dish by category id
      * @return
      */
-    @Select("select * from sky_take_out.dish where category_id = #{id}")
-    List<Dish> selectById(Long id);
+    @Select("select * from sky_take_out.dish where category_id = #{categoryId}")
+    List<Dish> selectByCategoryId(Long categoryId);
 
     /**
      * Insert dish
@@ -33,5 +34,19 @@ public interface DishMapper {
      * Pagination dish
      * @return
      */
-    Page<DishVO> page();
+    Page<DishVO> page(DishPageQueryDTO dishPageQueryDTO);
+
+    /**
+     * select by id
+     * @param id
+     * @return
+     */
+    @Select("select * from sky_take_out.dish where id = #{id}")
+    Dish selectById(Long id);
+
+    /**
+     * delete by id
+     * @param ids
+     */
+    void deleteByIds(List<Long> ids);
 }
