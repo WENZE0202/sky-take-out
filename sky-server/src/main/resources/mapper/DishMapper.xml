@@ -11,4 +11,21 @@
                 #{createTime}, #{updateTime}, #{createUser}, #{updateUser})
     </insert>
 
+    <select id="page" resultType="com.sky.vo.DishVO">
+        select d.*, c.name as categoryName from sky_take_out.dish d 
+            inner join sky_take_out.category c on(d.category_id = c.id)
+        <where>
+            <if test="name != null">
+                and d.name LIKE concat('%', #{name}, '%')
+            </if>
+            <if test="categoryId != null">
+                and d.category_id = #{categoryId}
+            </if>
+            <if test="status != null">
+                and d.status = #{status}
+            </if>
+        </where>
+        order by d.update_time desc
+    </select>
+
 </mapper>
