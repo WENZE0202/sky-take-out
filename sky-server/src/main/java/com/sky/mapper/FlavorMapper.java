@@ -23,4 +23,12 @@ public interface FlavorMapper {
      * @param dishIds
      */
     void deleteByDishIds(List<Long> dishIds);
+
+    /**
+     * select by dish id
+     * @param dishId
+     * @return
+     */
+    @Select("select * from sky_take_out.dish_flavor where dish_id = #{dishId}")
+    List<DishFlavor> selectById(Long dishId);
 }

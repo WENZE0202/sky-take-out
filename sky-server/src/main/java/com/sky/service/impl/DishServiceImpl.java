@@ -18,9 +18,11 @@ import com.sky.service.DishService;
 import com.sky.vo.DishVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -85,5 +87,45 @@ public class DishServiceImpl implements DishService {
 
         // 4. delete ids from flavor table
         flavorMapper.deleteByDishIds(ids);
+    }
+
+
+    @Override
+    public DishVO selectById(Long id) {
+        // 1. dish table
+        Dish dish = dishMapper.selectById(id);
+
+        // 2. flavor table
+        List<DishFlavor> flavors = flavorMapper.selectById(id);
+
+        DishVO dishVO = new DishVO();
+        BeanUtils.copyProperties(dish, dishVO);
+        dishVO.setFlavors(flavors);
+
+        return dishVO;
+    }
+
+    @Transactional
+    public void update(DishDTO dishDTO) {
+        // 1. update dish table
+        Dish dish = new Dish();
+        BeanUtils.copyProperties(dishDTO, dish);
+        dishMapper.update(dish);
+
+        // 2. update flavor table
+        // 2.1 delete flavors by id
+        List<Long> ids = new ArrayList<>();
+        ids.add(dishDTO.getId());
+        flavorMapper.deleteByDishIds(ids);
+
+        // 2.2 insert flavor
+        List<DishFlavor> flavors = dishDTO.getFlavors();
+
+        if(flavors != null && flavors.size() > 0){
+            flavors.forEach(dishFlavor -> {
+                dishFlavor.setDishId(dish.getId());
+            });
+            flavorMapper.insertBatch(flavors);
+        }
     }
 }
