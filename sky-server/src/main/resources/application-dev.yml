@@ -11,4 +11,8 @@ sky:
     access-key-secret: UnENbruKHvwN3jKyD8w6mZh8V9rGTM
     endpoint: oss-ap-southeast-3.aliyuncs.com
     bucket-name: sky-itcast-my-24
-
+  redis:
+    password: 123456
+    port: 6379
+    host: localhost
+    database: 10
