@@ -105,6 +105,12 @@ public class DishServiceImpl implements DishService {
         return dishVO;
     }
 
+    @Override
+    public List<Dish> selectByCategoryId(Long categoryId) {
+        List<Dish> list = dishMapper.selectByCategoryId(categoryId);
+        return list;
+    }
+
     @Transactional
     public void update(DishDTO dishDTO) {
         // 1. update dish table

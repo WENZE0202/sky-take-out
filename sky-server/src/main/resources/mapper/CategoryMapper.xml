@@ -23,4 +23,13 @@
         </where>
         order by sort asc
     </select>
+
+    <select id="selectByType" resultType="com.sky.entity.Category">
+        select * from sky_take_out.category
+        <where>
+            <if test="type != null">type = #{type}</if>
+        </where>
+        order by sort desc
+    </select>
+
 </mapper>

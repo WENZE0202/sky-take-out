@@ -40,4 +40,11 @@ public interface DishService {
      * @return
      */
     DishVO selectById(Long id);
+
+    /**
+     * select by category id
+     * @param categoryId
+     * @return
+     */
+    List<Dish> selectByCategoryId(Long categoryId);
 }

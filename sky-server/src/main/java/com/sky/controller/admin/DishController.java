@@ -1,6 +1,5 @@
 package com.sky.controller.admin;
 
-import com.aliyun.oss.model.ResizeUdfApplicationRequest;
 import com.sky.dto.DishDTO;
 import com.sky.dto.DishPageQueryDTO;
 import com.sky.entity.Dish;
@@ -24,6 +23,7 @@ public class DishController {
 
     @Autowired
     private DishService dishService;
+
 
 
     /**
@@ -90,6 +90,20 @@ public class DishController {
         log.info("dish update: {}", dishDTO);
         dishService.update(dishDTO);
         return Result.success();
+    }
+
+
+    /**
+     * select by category id(cooperate with set-meal form business logic)
+     * @param categoryId
+     * @return
+     */
+    @GetMapping("/list")
+    @ApiOperation("6. select by category id")
+    public Result<List<Dish>> selectByCategoryId(Long categoryId){
+        log.info("dish select by category id: {}", categoryId);
+        List<Dish> list = dishService.selectByCategoryId(categoryId);
+        return Result.success(list);
     }
 
 }
