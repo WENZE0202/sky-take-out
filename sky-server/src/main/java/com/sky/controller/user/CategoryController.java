@@ -30,6 +30,7 @@ public class CategoryController {
     @GetMapping("/list")
     @ApiOperation("1. Select by type")
     public Result<List<Category>> selectByType(Integer type){
+        log.info("[SELECT] select by type: {}", type);
         List<Category> list =  categoryService.selectByType(type);
         return Result.success(list);
     }

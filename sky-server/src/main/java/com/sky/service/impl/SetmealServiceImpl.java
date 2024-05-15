@@ -15,6 +15,7 @@ import com.sky.service.SetmealService;
 import com.sky.vo.SetmealVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,9 +28,26 @@ public class SetmealServiceImpl implements SetmealService {
     private SetMealMapper setMealMapper;
     @Autowired
     private SetmealDishMapper setmealDishMapper;
+    @Autowired
+    private RedisTemplate redisTemplate;
 
+    /**
+     * USER controller: list down all category records
+     * Redis: cache the records avoid DBMS operation frequently
+     * @param categoryId
+     * @return
+     */
     public List<Setmeal> selectByCategoryId(Long categoryId) {
-        List<Setmeal> list = setMealMapper.selectByCategoryId(categoryId);
+        // Redis records checking
+        String key = "Setmeal_" + categoryId;
+        List<Setmeal> list  = (List<Setmeal>) redisTemplate.opsForValue().get(key);
+        if(list != null && list.size() > 0){
+            return list;
+        }
+
+        // MySQL query and save into Redis
+        list = setMealMapper.selectByCategoryId(categoryId);
+        redisTemplate.opsForValue().set(key,list);
         return list;
     }
 

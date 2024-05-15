@@ -26,7 +26,7 @@ public class DishController {
     @GetMapping("/list")
     @ApiOperation("1. Select by category id")
     public Result<List<Dish>> selectByCategoryId(Long categoryId){
-        log.info("Dish table select by category id: {}", categoryId);
+        log.info("[SELECT] select by category id: {}", categoryId);
         List<Dish> list = dishService.selectByCategoryId(categoryId);
         return Result.success(list);
     }

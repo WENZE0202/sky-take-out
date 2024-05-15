@@ -20,6 +20,7 @@ import com.sky.service.CategoryService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -34,6 +35,8 @@ public class CategoryServiceImpl implements CategoryService {
     private DishMapper dishMapper;
     @Autowired
     private SetMealMapper setMealMapper;
+    @Autowired
+    private RedisTemplate redisTemplate;
 
 
     @Override
@@ -104,8 +107,32 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
 
+    /**
+     * USER controller: list down all category records
+     * Redis: cache the records avoid DBMS operation frequently
+     * @param type
+     * @return
+     */
     public List<Category> selectByType(Integer type) {
-        List<Category> list = categoryMapper.selectByType(type);
+        // Redis type records checking
+        String categoryKey = "Category_" + type;
+        List<Category> list = (List<Category>) getValueByString(categoryKey);
+        if(list != null && list.size() > 0){
+            return list;
+        }
+
+        // MySQL query and save into Redis
+        list = categoryMapper.selectByType(type);
+        redisTemplate.opsForValue().set(categoryKey, list);
         return list;
+    }
+
+    /**
+     * Redis string operation find by key
+     * @param key
+     * @return
+     */
+    private Object getValueByString(String key){
+        return redisTemplate.opsForValue().get(key);
     }
 }

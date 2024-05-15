@@ -2,7 +2,6 @@ package com.sky.controller.admin;
 
 import com.sky.dto.SetmealDTO;
 import com.sky.dto.SetmealPageQueryDTO;
-import com.sky.entity.Setmeal;
 import com.sky.result.PageResult;
 import com.sky.result.Result;
 import com.sky.service.SetmealService;
@@ -11,9 +10,10 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/admin/setmeal")
@@ -23,6 +23,8 @@ public class SetmealController {
 
     @Autowired
     private SetmealService setmealService;
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     /**
      * set meal page query
@@ -32,7 +34,7 @@ public class SetmealController {
     @GetMapping("/page")
     @ApiOperation("1. page query")
     public Result<PageResult> page(SetmealPageQueryDTO setmealPageQueryDTO){
-        log.info("[SELECT_PAGE] set meal page query: {}", setmealPageQueryDTO);
+        log.info("[PAGE] set meal page query: {}", setmealPageQueryDTO);
         PageResult pageResult = setmealService.page(setmealPageQueryDTO);
         return Result.success(pageResult);
     }
@@ -43,6 +45,10 @@ public class SetmealController {
     public Result insert(@RequestBody SetmealDTO setmealDTO){
         log.info("[INSERT] set meal insert from: {}", setmealDTO);
         setmealService.insert(setmealDTO);
+
+        // Clean cache by key start with Dish_
+        String pattern = "Dish_" + setmealDTO.getCategoryId();
+        deleteKey(pattern);
         return Result.success();
     }
 
@@ -59,6 +65,9 @@ public class SetmealController {
     public Result deleteBatch(@RequestParam Long[] ids){
         log.info("[DELETE] batch delete from ids: {}", ids);
         setmealService.deleteBatch(ids);
+
+        // Clean cache by key start with Dish_
+        deleteKey("Dish_*");
         return Result.success();
     }
 
@@ -76,8 +85,21 @@ public class SetmealController {
     public Result update(@RequestBody SetmealDTO setmealDTO){
         log.info("[UPDATE] update: {}", setmealDTO);
         setmealService.update(setmealDTO);
+
+        // Clean cache by key start with Dish_
+        deleteKey("Dish_*");
         return Result.success();
     }
 
+    /**
+     * Redis ops: delete by key pattern
+     * @param pattern
+     */
+    private void deleteKey(String pattern) {
+        Set keys = redisTemplate.keys(pattern);
+        if (keys != null && keys.size() > 0) {
+            redisTemplate.delete(keys);
+        }
+    }
 
 }

@@ -11,9 +11,11 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/admin/dish")
@@ -23,7 +25,8 @@ public class DishController {
 
     @Autowired
     private DishService dishService;
-
+    @Autowired
+    private RedisTemplate redisTemplate;
 
 
     /**
@@ -33,9 +36,12 @@ public class DishController {
     @PostMapping
     @ApiOperation(value = "1. Dish Insert With Flavors")
     public Result addWithFlavors(@RequestBody DishDTO dishDTO){
-        log.info("Insert dish with flavors: {}", dishDTO);
+        log.info("[INSERT] Insert dish with flavors from: {}", dishDTO);
         dishService.addWithFlavors(dishDTO);
 
+        // Clean cache by key start with Dish_
+        String pattern = "Dish_" + dishDTO.getCategoryId();
+        deleteKey(pattern);
         return Result.success();
     }
 
@@ -47,7 +53,7 @@ public class DishController {
     @GetMapping("/page")
     @ApiOperation("2. Dish pagination")
     public Result<PageResult> page(DishPageQueryDTO dishPageQueryDTO){
-        log.info("Dish pagination, {}", dishPageQueryDTO);
+        log.info("[PAGE] pagination, {}", dishPageQueryDTO);
         PageResult pageResult = dishService.page(dishPageQueryDTO);
         return Result.success(pageResult);
     }
@@ -60,8 +66,11 @@ public class DishController {
     @DeleteMapping
     @ApiOperation("3. Dish delete by ids")
     public Result delete(@RequestParam List<Long> ids){
-        log.info("Dish delete by ids: {}", ids);
+        log.info("[DELECT] batch delete by ids: {}", ids);
         dishService.deleteByIds(ids);
+
+        // Clean cache by key start with Dish_
+        deleteKey("Dish_*");
         return Result.success();
     }
 
@@ -74,7 +83,7 @@ public class DishController {
     @GetMapping("/{id}")
     @ApiOperation("4. Dish find by id")
     public Result<DishVO> selectById(@PathVariable Long id){
-        log.info("dish find by id: {}", id);
+        log.info("[SELECT] dish find by id: {}", id);
         DishVO dishVO = dishService.selectById(id);
         return Result.success(dishVO);
     }
@@ -87,8 +96,11 @@ public class DishController {
     @PutMapping
     @ApiOperation("5. Dish update")
     public Result update(@RequestBody DishDTO dishDTO){
-        log.info("dish update: {}", dishDTO);
+        log.info("[UPDATE] dish update: {}", dishDTO);
         dishService.update(dishDTO);
+
+        // Clean cache by key start with Dish_
+        deleteKey("Dish_*");
         return Result.success();
     }
 
@@ -101,9 +113,20 @@ public class DishController {
     @GetMapping("/list")
     @ApiOperation("6. select by category id")
     public Result<List<Dish>> selectByCategoryId(Long categoryId){
-        log.info("dish select by category id: {}", categoryId);
+        log.info("[SELECT] dish select by category id: {}", categoryId);
         List<Dish> list = dishService.selectByCategoryId(categoryId);
         return Result.success(list);
+    }
+
+    /**
+     * Redis ops: delete by key pattern
+     * @param pattern
+     */
+    private void deleteKey(String pattern){
+        Set keys = redisTemplate.keys(pattern);
+        if(keys != null && keys.size() > 0){
+            redisTemplate.delete(keys);
+        }
     }
 
 }

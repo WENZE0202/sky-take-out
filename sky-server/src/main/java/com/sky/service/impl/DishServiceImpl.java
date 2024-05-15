@@ -19,6 +19,7 @@ import com.sky.vo.DishVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,6 +34,8 @@ public class DishServiceImpl implements DishService {
     private FlavorMapper flavorMapper;
     @Autowired
     private SetMealMapper setMealMapper;
+    @Autowired
+    private RedisTemplate redisTemplate;
 
 
     @Override
@@ -105,9 +108,23 @@ public class DishServiceImpl implements DishService {
         return dishVO;
     }
 
-    @Override
+    /**
+     * USER controller: list down all category records
+     * Redis: cache the records avoid DBMS operation frequently
+     * @param categoryId
+     * @return
+     */
     public List<Dish> selectByCategoryId(Long categoryId) {
-        List<Dish> list = dishMapper.selectByCategoryId(categoryId);
+        // Redis dish records checking
+        String key = "Dish_" + categoryId;
+        List<Dish> list = (List<Dish>) redisTemplate.opsForValue().get(key);
+        if(list != null && list.size() > 0){
+            return list;
+        }
+
+        // DBMS dish query and save into Redis
+        list = dishMapper.selectByCategoryId(categoryId);
+        redisTemplate.opsForValue().set(key, list);
         return list;
     }
 
