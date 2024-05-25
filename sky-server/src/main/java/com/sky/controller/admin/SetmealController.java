@@ -10,6 +10,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
@@ -42,18 +43,20 @@ public class SetmealController {
 
     @PostMapping()
     @ApiOperation("2. insert")
+    @CacheEvict(cacheNames = "setmealCache", key = "#setmealDTO.categoryId")
     public Result insert(@RequestBody SetmealDTO setmealDTO){
         log.info("[INSERT] set meal insert from: {}", setmealDTO);
         setmealService.insert(setmealDTO);
 
         // Clean cache by key start with Dish_
-        String pattern = "Dish_" + setmealDTO.getCategoryId();
-        deleteKey(pattern);
+        // String pattern = "Dish_" + setmealDTO.getCategoryId();
+        // deleteKey(pattern);
         return Result.success();
     }
 
     @RequestMapping("/status/{status}")
     @ApiOperation("3. status start or stop")
+    @CacheEvict(cacheNames = "setmealCache", allEntries = true)
     public Result startOrStop(@PathVariable Integer status, Long id){
         log.info("[UPDATE] set meal id {} status: {}", id, (status == 0? "disable": "enable"));
         setmealService.startOrStop(status, id);
@@ -62,12 +65,13 @@ public class SetmealController {
 
     @DeleteMapping
     @ApiOperation("4. batch delete by ids")
+    @CacheEvict(cacheNames = "setmealCache", allEntries = true)
     public Result deleteBatch(@RequestParam Long[] ids){
         log.info("[DELETE] batch delete from ids: {}", ids);
         setmealService.deleteBatch(ids);
 
         // Clean cache by key start with Dish_
-        deleteKey("Dish_*");
+        //deleteKey("Dish_*");
         return Result.success();
     }
 
@@ -82,17 +86,19 @@ public class SetmealController {
 
     @PutMapping
     @ApiOperation("6. update")
+    @CacheEvict(cacheNames = "setmealCache", allEntries = true)
     public Result update(@RequestBody SetmealDTO setmealDTO){
         log.info("[UPDATE] update: {}", setmealDTO);
         setmealService.update(setmealDTO);
 
         // Clean cache by key start with Dish_
-        deleteKey("Dish_*");
+        // deleteKey("Dish_*");
         return Result.success();
     }
 
     /**
      * Redis ops: delete by key pattern
+     * 25/5/2024 replace to spring cache
      * @param pattern
      */
     private void deleteKey(String pattern) {

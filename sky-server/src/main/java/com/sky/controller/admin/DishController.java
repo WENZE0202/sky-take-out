@@ -11,6 +11,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,13 +36,14 @@ public class DishController {
      */
     @PostMapping
     @ApiOperation(value = "1. Dish Insert With Flavors")
+    @CacheEvict(cacheNames = "dishCache", key = "#dishDTO.categoryId")
     public Result addWithFlavors(@RequestBody DishDTO dishDTO){
         log.info("[INSERT] Insert dish with flavors from: {}", dishDTO);
         dishService.addWithFlavors(dishDTO);
 
         // Clean cache by key start with Dish_
-        String pattern = "Dish_" + dishDTO.getCategoryId();
-        deleteKey(pattern);
+        //String pattern = "Dish_" + dishDTO.getCategoryId();
+        //deleteKey(pattern);
         return Result.success();
     }
 
@@ -65,12 +67,13 @@ public class DishController {
      */
     @DeleteMapping
     @ApiOperation("3. Dish delete by ids")
+    @CacheEvict(cacheNames = "dishCahce", allEntries = true)
     public Result delete(@RequestParam List<Long> ids){
         log.info("[DELECT] batch delete by ids: {}", ids);
         dishService.deleteByIds(ids);
 
         // Clean cache by key start with Dish_
-        deleteKey("Dish_*");
+        //deleteKey("Dish_*");
         return Result.success();
     }
 
@@ -95,12 +98,13 @@ public class DishController {
      */
     @PutMapping
     @ApiOperation("5. Dish update")
+    @CacheEvict(cacheNames = "dishCahce", allEntries = true)
     public Result update(@RequestBody DishDTO dishDTO){
         log.info("[UPDATE] dish update: {}", dishDTO);
         dishService.update(dishDTO);
 
         // Clean cache by key start with Dish_
-        deleteKey("Dish_*");
+        // deleteKey("Dish_*");
         return Result.success();
     }
 
@@ -121,6 +125,7 @@ public class DishController {
     /**
      * Redis ops: delete by key pattern
      * @param pattern
+     * 25/5/2024 change to Spring Cache
      */
     private void deleteKey(String pattern){
         Set keys = redisTemplate.keys(pattern);
