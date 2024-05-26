@@ -98,7 +98,7 @@ public class DishController {
      */
     @PutMapping
     @ApiOperation("5. Dish update")
-    @CacheEvict(cacheNames = "dishCahce", allEntries = true)
+    @CacheEvict(cacheNames = "dishCache", allEntries = true)
     public Result update(@RequestBody DishDTO dishDTO){
         log.info("[UPDATE] dish update: {}", dishDTO);
         dishService.update(dishDTO);
@@ -116,9 +116,9 @@ public class DishController {
      */
     @GetMapping("/list")
     @ApiOperation("6. select by category id")
-    public Result<List<Dish>> selectByCategoryId(Long categoryId){
+    public Result<List<DishVO>> selectByCategoryId(Long categoryId){
         log.info("[SELECT] dish select by category id: {}", categoryId);
-        List<Dish> list = dishService.selectByCategoryId(categoryId);
+        List<DishVO> list = dishService.selectByCategoryId(categoryId);
         return Result.success(list);
     }
 

@@ -1,8 +1,10 @@
 package com.sky.controller.user;
 
 import com.sky.entity.Dish;
+import com.sky.result.PageResult;
 import com.sky.result.Result;
 import com.sky.service.DishService;
+import com.sky.vo.DishVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -27,9 +29,9 @@ public class DishController {
     @GetMapping("/list")
     @ApiOperation("1. Select by category id")
     @Cacheable(cacheNames = "dishCache", key = "#categoryId")
-    public Result<List<Dish>> selectByCategoryId(Long categoryId){
+    public Result<List<DishVO>> selectByCategoryId(Long categoryId){
         log.info("[SELECT] select by category id: {}", categoryId);
-        List<Dish> list = dishService.selectByCategoryId(categoryId);
+        List<DishVO> list = dishService.selectByCategoryId(categoryId);
         return Result.success(list);
     }
 }

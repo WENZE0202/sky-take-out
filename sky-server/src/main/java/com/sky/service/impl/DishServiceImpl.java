@@ -114,17 +114,25 @@ public class DishServiceImpl implements DishService {
      * @param categoryId
      * @return
      */
-    public List<Dish> selectByCategoryId(Long categoryId) {
-        // Redis dish records checking
-        String key = "Dish_" + categoryId;
-        List<Dish> list = (List<Dish>) redisTemplate.opsForValue().get(key);
+    public List<DishVO> selectByCategoryId(Long categoryId) {
+        /*
+         dish category records combine two table: dish and flavors
+         business logic: one category contains >1 or 0 dishes
+         and one dish contains >1 or 0 flavor
+        */
+
+        //1. dish table query
+        List<DishVO> list = dishMapper.selectByCategoryId(categoryId);
+
+        //2. flavor table query, from DishVO List
         if(list != null && list.size() > 0){
-            return list;
+            list.forEach(dishVO -> {
+                Long dishId = dishVO.getId();
+                List<DishFlavor> flavors = flavorMapper.selectById(dishId);
+                dishVO.setFlavors(flavors);
+            });
         }
 
-        // DBMS dish query and save into Redis
-        list = dishMapper.selectByCategoryId(categoryId);
-        redisTemplate.opsForValue().set(key, list);
         return list;
     }
 
@@ -148,7 +156,7 @@ public class DishServiceImpl implements DishService {
             flavors.forEach(dishFlavor -> {
                 dishFlavor.setDishId(dish.getId());
             });
-            flavorMapper.insertBatch(flavors);
         }
+        flavorMapper.insertBatch(flavors);
     }
 }

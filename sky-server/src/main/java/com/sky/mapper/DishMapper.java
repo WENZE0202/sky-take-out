@@ -22,7 +22,7 @@ public interface DishMapper {
      * @return
      */
     @Select("select * from sky_take_out.dish where category_id = #{categoryId}")
-    List<Dish> selectByCategoryId(Long categoryId);
+    List<DishVO> selectByCategoryId(Long categoryId);
 
     /**
      * Insert dish
@@ -57,4 +57,6 @@ public interface DishMapper {
      */
     @AutoFill(value = OperationType.UPDATE)
     void update(Dish dish);
+
+
 }
