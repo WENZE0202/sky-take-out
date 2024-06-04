@@ -4,6 +4,7 @@ package com.sky.controller.user;
 import com.sky.context.BaseContext;
 import com.sky.dto.OrdersPaymentDTO;
 import com.sky.dto.OrdersSubmitDTO;
+import com.sky.entity.Orders;
 import com.sky.result.Result;
 import com.sky.service.OrderService;
 import com.sky.vo.OrderPaymentVO;
@@ -49,5 +50,14 @@ public class OrderController {
         OrderPaymentVO orderPaymentVO = orderService.payment(ordersPaymentDTO);
         log.info("生成预支付交易单：{}", orderPaymentVO);
         return Result.success(orderPaymentVO);
+    }
+
+    //TODO havent complete history API and testing customer reminder 31/5
+    @GetMapping("/reminder/{id}")
+    @ApiOperation("客户催单")
+    public Result reminder(@PathVariable("id") Long id){
+        log.info("[REMINDER] Customer order reminder: {}", id);
+        orderService.remind(id);
+        return Result.success();
     }
 }

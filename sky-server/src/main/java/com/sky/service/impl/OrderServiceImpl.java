@@ -15,16 +15,23 @@ import com.sky.utils.WeChatPayUtil;
 import com.sky.vo.OrderPaymentVO;
 import com.sky.vo.OrderSubmitVO;
 import com.sky.vo.OrderVO;
+import com.sky.vo.TurnoverReportVO;
+import com.sky.websocket.WebSocketServer;
 import org.apache.commons.lang.RandomStringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static java.lang.System.*;
 
@@ -42,6 +49,8 @@ public class OrderServiceImpl implements OrderService {
     private UserMapper userMapper;
     @Autowired
     private WeChatPayUtil weChatPayUtil;
+    @Autowired
+    private WebSocketServer webSocketServer;
 
     @Transactional
     public OrderSubmitVO submit(OrdersSubmitDTO ordersSubmitDTO) {
@@ -117,7 +126,7 @@ public class OrderServiceImpl implements OrderService {
 //                user.getOpenid() //微信用户的openid
 //        );
 
-        // WeChat pay feature cant accomplish
+        // [Temporary code] WeChat pay feature cant accomplish due to don't have official merchant entity
         JSONObject jsonObject = new JSONObject();
         String timeStamp = String.valueOf(System.currentTimeMillis() / 1000);
         String nonceStr = RandomStringUtils.randomNumeric(32);
@@ -133,12 +142,8 @@ public class OrderServiceImpl implements OrderService {
         OrderPaymentVO vo = jsonObject.toJavaObject(OrderPaymentVO.class);
         vo.setPackageStr(jsonObject.getString("package"));
 
-        //为替代微信支付成功后的数据库订单状态更新，多定义一个方法进行修改
-        Integer OrderPaidStatus = Orders.PAID; //支付状态，已支付
-        Integer OrderStatus = Orders.TO_BE_CONFIRMED;  //订单状态，待接单
-        LocalDateTime checkOutTime = LocalDateTime.now();
-        Orders order = orderMapper.getByNumber(ordersPaymentDTO.getOrderNumber());
-        orderMapper.updateStatus(OrderStatus, OrderPaidStatus, checkOutTime, order.getId());
+        // update order status
+        paySuccess(ordersPaymentDTO.getOrderNumber());
 
         return vo;
     }
@@ -162,5 +167,73 @@ public class OrderServiceImpl implements OrderService {
                 .build();
 
         orderMapper.update(orders);
+
+        // push incoming order notify to all user session
+        Map map = new HashMap<>();
+        map.put("type", 1); // 1: incoming order notify 2: client order reminder
+        map.put("orderId", ordersDB.getId());
+        map.put("content", "订单号：" + outTradeNo);
+        String jsonString = JSONObject.toJSONString(map);
+        webSocketServer.sendToAllClient(jsonString);
+
+    }
+
+    /**
+     * 客户催单
+     * @param id
+     */
+    public void remind(Long id) {
+        Orders orders = orderMapper.getById(id);
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("type", 2); // 1: incoming order notify 2: customer order reminder
+        jsonObject.put("orderId", id);
+        jsonObject.put("content", "订单号： " + orders.getNumber());
+        String jsonString = jsonObject.toJSONString();
+
+        // notify all connection session(client)
+        webSocketServer.sendToAllClient(jsonString);
+    }
+
+
+    /**
+     * turnover statistic: sum every entry valid amount within given date time interval
+     * @param begin
+     * @param end
+     * @return
+     */
+    public TurnoverReportVO turnoverStatistics(LocalDate begin, LocalDate end) {
+        // records detail local date between begin and end
+        List<LocalDate> localDateList = new ArrayList<>();
+        localDateList.add(begin);
+
+        while (!begin.equals(end)){
+            begin = begin.plusDays(1);
+            localDateList.add(begin);
+        }
+
+        // records local date list turnover amount
+        List<Long> turnoverList = new ArrayList<>();
+        for (LocalDate date : localDateList) {
+            // select sum(amount) turnover from orders where order_time > ? and order_time < ? and status = ?
+            LocalDateTime beginTime = LocalDateTime.of(date, LocalTime.MIN);
+            LocalDateTime endTime = LocalDateTime.of(date, LocalTime.MAX);
+            Map map = new HashMap();
+            map.put("beginTime", beginTime);
+            map.put("endTime", endTime);
+            map.put("status", Orders.COMPLETED);
+            Long turnover = orderMapper.getSumByMap(map);
+            turnover = turnover == null? (long) 0.0 : turnover;
+            turnoverList.add(turnover);
+        }
+
+        // convert list to string, split by comma
+        String dateStr = StringUtils.join(localDateList, ',');
+        String turnoverStr = StringUtils.join(turnoverList, ',');
+
+        return TurnoverReportVO
+                .builder()
+                .dateList(dateStr)
+                .turnoverList(turnoverStr)
+                .build();
     }
 }

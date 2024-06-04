@@ -8,6 +8,7 @@ import org.apache.ibatis.annotations.Update;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @Mapper
 public interface OrderMapper {
@@ -49,4 +50,20 @@ public interface OrderMapper {
      */
     @Select(" select * from orders where status = #{status} and order_time < #{dateTime}")
     List<Orders> selectByStatusAndOrderTimeBefore(Integer status,LocalDateTime dateTime);
+
+
+    /**
+     * select by id
+     * @param id
+     * @return
+     */
+    @Select("select * from sky_take_out.orders where id = #{id}")
+    Orders getById(Long id);
+
+    /**
+     * take map as condition, sum amount (turnover)
+     * @param map begin time, end time, status
+     * @return
+     */
+    Long getSumByMap(Map map);
 }

@@ -4,6 +4,9 @@ import com.sky.dto.OrdersPaymentDTO;
 import com.sky.dto.OrdersSubmitDTO;
 import com.sky.vo.OrderPaymentVO;
 import com.sky.vo.OrderSubmitVO;
+import com.sky.vo.TurnoverReportVO;
+
+import java.time.LocalDate;
 
 public interface OrderService {
 
@@ -26,4 +29,18 @@ public interface OrderService {
      * @param outTradeNo
      */
     void paySuccess(String outTradeNo);
+
+    /**
+     * 客户催单
+     * @param id
+     */
+    void remind(Long id);
+
+    /**
+     * turnover statistic: sum every entry valid amount within given date time interval
+     * @param begin
+     * @param end
+     * @return
+     */
+    TurnoverReportVO turnoverStatistics(LocalDate begin, LocalDate end);
 }
