@@ -211,16 +211,18 @@ public class OrderServiceImpl implements OrderService {
             localDateList.add(begin);
         }
 
-        // records local date list turnover amount
         List<Long> turnoverList = new ArrayList<>();
+        // records local date list turnover amount
         for (LocalDate date : localDateList) {
             // select sum(amount) turnover from orders where order_time > ? and order_time < ? and status = ?
             LocalDateTime beginTime = LocalDateTime.of(date, LocalTime.MIN);
             LocalDateTime endTime = LocalDateTime.of(date, LocalTime.MAX);
+
             Map map = new HashMap();
             map.put("beginTime", beginTime);
             map.put("endTime", endTime);
             map.put("status", Orders.COMPLETED);
+
             Long turnover = orderMapper.getSumByMap(map);
             turnover = turnover == null? (long) 0.0 : turnover;
             turnoverList.add(turnover);
