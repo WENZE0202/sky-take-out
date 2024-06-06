@@ -3,6 +3,7 @@ package com.sky.controller.admin;
 import com.sky.result.Result;
 import com.sky.service.OrderService;
 import com.sky.service.UserService;
+import com.sky.vo.OrderReportVO;
 import com.sky.vo.TurnoverReportVO;
 import com.sky.vo.UserReportVO;
 import io.swagger.annotations.Api;
@@ -56,5 +57,20 @@ public class ReportController {
         log.info("[STATISTICS] User statistic report date range: {} : {}", begin,end);
         UserReportVO userReportVO = userService.userReport(begin, end);
         return Result.success(userReportVO);
+    }
+
+    /**
+     * daily effective order and total order, count and rate statistics
+     * @param begin
+     * @param end
+     * @return
+     */
+    @GetMapping("/ordersStatistics")
+    public Result<OrderReportVO> orderReport(
+            @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate begin,
+            @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate end){
+        log.info("[STATISTICS] Order report day rang: {} - {}", begin, end);
+        OrderReportVO orderReportVO = orderService.orderReport(begin, end);
+        return Result.success(orderReportVO);
     }
 }

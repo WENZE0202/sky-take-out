@@ -66,4 +66,11 @@ public interface OrderMapper {
      * @return
      */
     Long getSumByMap(Map map);
+
+    /**
+     * take map as condition, count order id
+     * @param map begin time, end time, status
+     * @return
+     */
+    Integer getCountByMap(Map map);
 }

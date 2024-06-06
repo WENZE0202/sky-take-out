@@ -13,8 +13,8 @@ import com.sky.mapper.*;
 import com.sky.service.OrderService;
 import com.sky.utils.WeChatPayUtil;
 import com.sky.vo.OrderPaymentVO;
+import com.sky.vo.OrderReportVO;
 import com.sky.vo.OrderSubmitVO;
-import com.sky.vo.OrderVO;
 import com.sky.vo.TurnoverReportVO;
 import com.sky.websocket.WebSocketServer;
 import org.apache.commons.lang.RandomStringUtils;
@@ -24,7 +24,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -32,8 +31,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BinaryOperator;
 
-import static java.lang.System.*;
 
 @Service
 public class OrderServiceImpl implements OrderService {
@@ -202,14 +201,8 @@ public class OrderServiceImpl implements OrderService {
      * @return
      */
     public TurnoverReportVO turnoverStatistics(LocalDate begin, LocalDate end) {
-        // records detail local date between begin and end
-        List<LocalDate> localDateList = new ArrayList<>();
-        localDateList.add(begin);
-
-        while (!begin.equals(end)){
-            begin = begin.plusDays(1);
-            localDateList.add(begin);
-        }
+        // find out every date start with begin until end
+        List<LocalDate> localDateList = findAllDateBetween(begin, end);
 
         List<Long> turnoverList = new ArrayList<>();
         // records local date list turnover amount
@@ -237,5 +230,73 @@ public class OrderServiceImpl implements OrderService {
                 .dateList(dateStr)
                 .turnoverList(turnoverStr)
                 .build();
+    }
+
+    /**
+     * daily effective order and total order, count and rate statistics
+     * @param begin
+     * @param end
+     * @return
+     */
+    public OrderReportVO orderReport(LocalDate begin, LocalDate end) {
+        // find out every date start with begin until end
+        List<LocalDate> localDateList = findAllDateBetween(begin, end);
+
+        List<Integer> dailyTotalOrderCountList = new ArrayList<>();
+        List<Integer> dailyEffectiveOrderCountList = new ArrayList<>();
+        for (LocalDate date : localDateList) {
+            LocalDateTime beginTime = LocalDateTime.of(date, LocalTime.MIN);
+            LocalDateTime endTime = LocalDateTime.of(date, LocalTime.MAX);
+
+            // Daily total order count
+            // select count(id) from orders where create_time > ? and create_time < ?
+            Map map = new HashMap();
+            map.put("beginTime", beginTime);
+            map.put("endTime", endTime);
+            Integer countTotal = orderMapper.getCountByMap(map);
+            dailyTotalOrderCountList.add(countTotal);
+
+            // Daily effective order count
+            // select count(id) from orders where status = ? and create_time > ? and create_time < ?
+            map.put("status", Orders.COMPLETED);
+            Integer countValid = orderMapper.getCountByMap(map);
+            dailyEffectiveOrderCountList.add(countValid);
+        }
+
+        // convert list to string, split by comma
+        String dateListStr = StringUtils.join(localDateList, ',');
+        String dailyTotalOrderCountListStr = StringUtils.join(dailyTotalOrderCountList, ',');
+        String dailyEffectiveOrderCountListStr = StringUtils.join(dailyEffectiveOrderCountList, ',');
+
+        // Daily effective order/ total order overall date range sum
+        // JDK8: streams handle collection data type processing
+        Integer sumTotalOrder = dailyTotalOrderCountList.stream().reduce(Integer::sum).get();
+        Integer sumEffectiveOrder = dailyEffectiveOrderCountList.stream().reduce(Integer::sum).get();
+
+        // order completion rate = effective order / total order * 100%
+        Double orderCompletionRate = 0.0; // possible exception when sumTotalOrder become 0
+        orderCompletionRate =
+                sumTotalOrder == 0? 0.0 : (double) ((sumEffectiveOrder / sumTotalOrder) * 100);
+
+        return OrderReportVO
+                .builder()
+                .dateList(dateListStr)
+                .validOrderCountList(dailyEffectiveOrderCountListStr)
+                .orderCountList(dailyTotalOrderCountListStr)
+                .validOrderCount(sumEffectiveOrder)
+                .totalOrderCount(sumTotalOrder)
+                .orderCompletionRate(orderCompletionRate)
+                .build();
+    }
+
+    private List<LocalDate> findAllDateBetween(LocalDate begin, LocalDate end){
+        List<LocalDate> localDateList = new ArrayList<>();
+        localDateList.add(begin);
+        // find out every date start with begin until end
+        while(!begin.equals(end)){
+            begin = begin.plusDays(1); // next day
+            localDateList.add(begin);
+        }
+        return localDateList;
     }
 }

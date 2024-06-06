@@ -3,6 +3,7 @@ package com.sky.service;
 import com.sky.dto.OrdersPaymentDTO;
 import com.sky.dto.OrdersSubmitDTO;
 import com.sky.vo.OrderPaymentVO;
+import com.sky.vo.OrderReportVO;
 import com.sky.vo.OrderSubmitVO;
 import com.sky.vo.TurnoverReportVO;
 
@@ -43,4 +44,12 @@ public interface OrderService {
      * @return
      */
     TurnoverReportVO turnoverStatistics(LocalDate begin, LocalDate end);
+
+    /**
+     * daily effective order and total order, count and rate statistics
+     * @param begin
+     * @param end
+     * @return
+     */
+    OrderReportVO orderReport(LocalDate begin, LocalDate end);
 }
