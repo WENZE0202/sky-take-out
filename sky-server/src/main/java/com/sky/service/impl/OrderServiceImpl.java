@@ -5,10 +5,7 @@ import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.sky.constant.MessageConstant;
 import com.sky.context.BaseContext;
-import com.sky.dto.GoodsSalesDTO;
-import com.sky.dto.OrdersPageQueryDTO;
-import com.sky.dto.OrdersPaymentDTO;
-import com.sky.dto.OrdersSubmitDTO;
+import com.sky.dto.*;
 import com.sky.entity.*;
 import com.sky.exception.AddressBookBusinessException;
 import com.sky.exception.ShoppingCartBusinessException;
@@ -22,7 +19,6 @@ import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -350,6 +346,62 @@ public class OrderServiceImpl implements OrderService {
                 .total(ordersPage.getTotal())
                 .records(ordersPage.getResult())
                 .build();
+    }
+
+    /**
+     * Order detail select by order id (order detail, order table in used)
+     * @param id
+     * @return
+     */
+    @Override
+    public OrderVO detailSelectById(Long id) {
+        OrderVO orderVO = new OrderVO(); // order detail, orders table in used
+
+        // select * from orders where id = ?
+        Orders order = orderMapper.selectById(id); // settle order table
+        BeanUtils.copyProperties(order, orderVO);
+
+        // select * from order_detail where order_id = ?
+        List<OrderDetail> orderDetailsList = orderDetailMapper.selectByOrderId(id);
+        orderVO.setOrderDetailList(orderDetailsList);
+
+        return orderVO;
+    }
+
+    /**
+     * update order status in difference scenario
+     * @param orderStatusDTO
+     */
+    public void updateStatus(OrderStatusDTO orderStatusDTO){
+        Orders orders = new Orders();
+        switch (orderStatusDTO.getOrderStatus()) {
+            case CONFIRMED:
+                // update status to confirm
+                // status = 3(confirm)
+                orders = Orders.builder().id(orderStatusDTO.getId())
+                        .status(Orders.CONFIRMED).build();
+                break;
+            case DELIVERY_IN_PROGRESS:
+                // update status to delivery in progress
+                // status = 3(confirm)
+                orders = Orders.builder().id(orderStatusDTO.getId())
+                        .status(Orders.DELIVERY_IN_PROGRESS).build();
+                break;
+            case COMPLETED:
+                // update status to delivery in progress
+                // status = 3(confirm)
+                orders = Orders.builder().id(orderStatusDTO.getId())
+                        .status(Orders.COMPLETED).build();
+                break;
+            case CANCELLED:
+                // update status to reject
+                // status = 6(cancelled), rejectionReason = ?
+                orders = Orders.builder().id(orderStatusDTO.getId()).status(Orders.CANCELLED)
+                        .rejectionReason(orderStatusDTO.getRejectionReason()).build();
+                break;
+
+        }
+        orderMapper.update(orders);
     }
 
     private List<LocalDate> findAllDateBetween(LocalDate begin, LocalDate end){

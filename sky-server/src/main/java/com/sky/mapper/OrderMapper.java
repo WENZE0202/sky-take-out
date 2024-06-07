@@ -4,6 +4,7 @@ import com.github.pagehelper.Page;
 import com.sky.dto.GoodsSalesDTO;
 import com.sky.dto.OrdersPageQueryDTO;
 import com.sky.entity.Orders;
+import com.sky.vo.OrderVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
@@ -95,4 +96,19 @@ public interface OrderMapper {
      * @return
      */
     Page<Orders> list(OrdersPageQueryDTO ordersPageQueryDTO);
+
+    /**
+     * Order detail select by order id (order detail, order table in used)
+     * @param id
+     * @return
+     */
+    OrderVO selectByIdWithDetail(Long id);
+
+    /**
+     * select by order id
+     * @param id
+     * @return
+     */
+    @Select("select * from orders where id = #{id}")
+    Orders selectById(Long id);
 }

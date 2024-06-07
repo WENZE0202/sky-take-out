@@ -87,4 +87,10 @@
         order by order_time desc
     </select>
 
+    <select id="selectByIdWithDetail" resultType="com.sky.vo.OrderVO">
+        select * from (select * from orders where id = #{id}) o,
+                      order_detail od
+        where o.id = od.order_id
+    </select>
+
 </mapper>

@@ -1,8 +1,6 @@
 package com.sky.service;
 
-import com.sky.dto.OrdersPageQueryDTO;
-import com.sky.dto.OrdersPaymentDTO;
-import com.sky.dto.OrdersSubmitDTO;
+import com.sky.dto.*;
 import com.sky.entity.Orders;
 import com.sky.result.PageResult;
 import com.sky.vo.*;
@@ -67,4 +65,18 @@ public interface OrderService {
      * @return
      */
     PageResult page(OrdersPageQueryDTO ordersPageQueryDTO);
+
+    /**
+     * Order detail select by order id (order detail, order table in used)
+     * @param id
+     * @return
+     */
+    OrderVO detailSelectById(Long id);
+
+
+    /**
+     * update order status in difference scenario
+     * @param orderStatusDTO
+     */
+    void updateStatus(OrderStatusDTO orderStatusDTO);
 }
