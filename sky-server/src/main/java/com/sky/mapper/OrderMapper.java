@@ -1,10 +1,12 @@
 package com.sky.mapper;
 
+import com.sky.dto.GoodsSalesDTO;
 import com.sky.entity.Orders;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -73,4 +75,15 @@ public interface OrderMapper {
      * @return
      */
     Integer getCountByMap(Map map);
+
+    /**
+     * top 10 sales report within date range
+     * @param beginTime
+     * @param endTime
+     * @param completed
+     * @return
+     */
+    List<GoodsSalesDTO> salesTop10(@Value("beginTime") LocalDateTime beginTime,
+                                   @Value("endTime") LocalDateTime endTime,
+                                   @Value("completed") Integer completed);
 }

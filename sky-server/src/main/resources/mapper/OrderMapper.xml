@@ -65,4 +65,14 @@
         </where>
     </select>
 
+    <select id="salesTop10" resultType="com.sky.dto.GoodsSalesDTO">
+        select od.name name, sum(od.number) number
+        from (select * from orders where status = #{completed}
+                                     and order_time &gt; #{beginTime} and order_time &lt; #{endTime}) o
+        , order_detail od
+        where o.id = od.order_id
+        group by od.name
+        order by number desc
+    </select>
+
 </mapper>

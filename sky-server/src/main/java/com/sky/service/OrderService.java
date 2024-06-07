@@ -2,10 +2,7 @@ package com.sky.service;
 
 import com.sky.dto.OrdersPaymentDTO;
 import com.sky.dto.OrdersSubmitDTO;
-import com.sky.vo.OrderPaymentVO;
-import com.sky.vo.OrderReportVO;
-import com.sky.vo.OrderSubmitVO;
-import com.sky.vo.TurnoverReportVO;
+import com.sky.vo.*;
 
 import java.time.LocalDate;
 
@@ -52,4 +49,12 @@ public interface OrderService {
      * @return
      */
     OrderReportVO orderReport(LocalDate begin, LocalDate end);
+
+    /**
+     * top 10 sales report within date range
+     * @param begin
+     * @param end
+     * @return
+     */
+    SalesTop10ReportVO salesTop10(LocalDate begin, LocalDate end);
 }

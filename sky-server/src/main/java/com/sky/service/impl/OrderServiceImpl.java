@@ -3,6 +3,7 @@ package com.sky.service.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.sky.constant.MessageConstant;
 import com.sky.context.BaseContext;
+import com.sky.dto.GoodsSalesDTO;
 import com.sky.dto.OrdersPaymentDTO;
 import com.sky.dto.OrdersSubmitDTO;
 import com.sky.entity.*;
@@ -12,13 +13,11 @@ import com.sky.exception.ShoppingCartBusinessException;
 import com.sky.mapper.*;
 import com.sky.service.OrderService;
 import com.sky.utils.WeChatPayUtil;
-import com.sky.vo.OrderPaymentVO;
-import com.sky.vo.OrderReportVO;
-import com.sky.vo.OrderSubmitVO;
-import com.sky.vo.TurnoverReportVO;
+import com.sky.vo.*;
 import com.sky.websocket.WebSocketServer;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.poi.ss.formula.functions.T;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -27,11 +26,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.BinaryOperator;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -276,7 +273,7 @@ public class OrderServiceImpl implements OrderService {
         // order completion rate = effective order / total order * 100%
         Double orderCompletionRate = 0.0; // possible exception when sumTotalOrder become 0
         orderCompletionRate =
-                sumTotalOrder == 0? 0.0 : (double) ((sumEffectiveOrder / sumTotalOrder) * 100);
+                sumTotalOrder.intValue() == 0 ? 0.0 : ((double) sumEffectiveOrder / sumTotalOrder);
 
         return OrderReportVO
                 .builder()
@@ -289,6 +286,46 @@ public class OrderServiceImpl implements OrderService {
                 .build();
     }
 
+    /**
+     * top 10 sales report within date range
+     * @param begin
+     * @param end
+     * @return
+     */
+    public SalesTop10ReportVO salesTop10(LocalDate begin, LocalDate end) {
+        // find sales top 10 from orders and order_detail table
+        /*
+         select od.name, sum(od.number) total
+            from (select * from orders where status = 5 and create_time > begin and create_time < end) o
+                , order_detail od
+            where o.id = od.order_id
+            group by od.name
+            order by total desc
+         */
+        LocalDateTime beginTime = LocalDateTime.of(begin, LocalTime.MIN);
+        LocalDateTime endTime = LocalDateTime.of(end, LocalTime.MAX);
+
+        List<GoodsSalesDTO> goodsSalesDTOList
+                = orderMapper.salesTop10(beginTime, endTime, Orders.COMPLETED);
+
+        // Extract name and count elements from map to List
+        // JDK8: streams handle collection processing
+//        Set<Map.Entry<String, Integer>> entrySet = salesTop10Map.entrySet();
+//        List<String> nameList = entrySet.stream().map(s -> s.getKey()).collect(Collectors.toList());
+//        List<Integer> numberList = entrySet.stream().map(s -> s.getValue()).collect(Collectors.toList());
+
+        List<String> nameList =
+                goodsSalesDTOList.stream().map(GoodsSalesDTO::getName).collect(Collectors.toList());
+        List<Integer> numberList =
+                goodsSalesDTOList.stream().map(GoodsSalesDTO::getNumber).collect(Collectors.toList());
+
+        return SalesTop10ReportVO
+                .builder()
+                .nameList(listToStrSplitByComma(nameList))
+                .numberList(listToStrSplitByComma(numberList))
+                .build();
+    }
+
     private List<LocalDate> findAllDateBetween(LocalDate begin, LocalDate end){
         List<LocalDate> localDateList = new ArrayList<>();
         localDateList.add(begin);
@@ -298,5 +335,9 @@ public class OrderServiceImpl implements OrderService {
             localDateList.add(begin);
         }
         return localDateList;
+    }
+
+    private String listToStrSplitByComma(List<?> list){
+        return StringUtils.join(list, ',');
     }
 }
