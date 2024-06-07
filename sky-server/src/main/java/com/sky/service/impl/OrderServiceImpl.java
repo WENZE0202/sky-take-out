@@ -1,25 +1,28 @@
 package com.sky.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import com.sky.constant.MessageConstant;
 import com.sky.context.BaseContext;
 import com.sky.dto.GoodsSalesDTO;
+import com.sky.dto.OrdersPageQueryDTO;
 import com.sky.dto.OrdersPaymentDTO;
 import com.sky.dto.OrdersSubmitDTO;
 import com.sky.entity.*;
 import com.sky.exception.AddressBookBusinessException;
-import com.sky.exception.OrderBusinessException;
 import com.sky.exception.ShoppingCartBusinessException;
 import com.sky.mapper.*;
+import com.sky.result.PageResult;
 import com.sky.service.OrderService;
 import com.sky.utils.WeChatPayUtil;
 import com.sky.vo.*;
 import com.sky.websocket.WebSocketServer;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.poi.ss.formula.functions.T;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,7 +30,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
-import java.util.function.BinaryOperator;
 import java.util.stream.Collectors;
 
 
@@ -323,6 +325,30 @@ public class OrderServiceImpl implements OrderService {
                 .builder()
                 .nameList(listToStrSplitByComma(nameList))
                 .numberList(listToStrSplitByComma(numberList))
+                .build();
+    }
+
+    /**
+     * List all records from orders table limit by conditions
+     * @param ordersPageQueryDTO
+     * @return
+     */
+    public PageResult page(OrdersPageQueryDTO ordersPageQueryDTO) {
+        // Page helper assists dynamic interpolation LIMIT query cooperate with XML
+        PageHelper.startPage(ordersPageQueryDTO.getPage(), ordersPageQueryDTO.getPageSize());
+
+        /*
+            select * from orders where number = ? and phone = ? and status = ?
+                and order_time > ? and order_time < ?
+            limit(0, 10)
+            order by order_time desc
+         */
+        Page<Orders> ordersPage = orderMapper.list(ordersPageQueryDTO);
+
+        return PageResult
+                .builder()
+                .total(ordersPage.getTotal())
+                .records(ordersPage.getResult())
                 .build();
     }
 

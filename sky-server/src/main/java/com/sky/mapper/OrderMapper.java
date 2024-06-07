@@ -1,6 +1,8 @@
 package com.sky.mapper;
 
+import com.github.pagehelper.Page;
 import com.sky.dto.GoodsSalesDTO;
+import com.sky.dto.OrdersPageQueryDTO;
 import com.sky.entity.Orders;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -86,4 +88,11 @@ public interface OrderMapper {
     List<GoodsSalesDTO> salesTop10(@Value("beginTime") LocalDateTime beginTime,
                                    @Value("endTime") LocalDateTime endTime,
                                    @Value("completed") Integer completed);
+
+    /**
+     * List all records from orders table limit by conditions
+     * @param ordersPageQueryDTO
+     * @return
+     */
+    Page<Orders> list(OrdersPageQueryDTO ordersPageQueryDTO);
 }

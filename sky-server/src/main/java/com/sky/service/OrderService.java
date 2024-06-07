@@ -1,7 +1,10 @@
 package com.sky.service;
 
+import com.sky.dto.OrdersPageQueryDTO;
 import com.sky.dto.OrdersPaymentDTO;
 import com.sky.dto.OrdersSubmitDTO;
+import com.sky.entity.Orders;
+import com.sky.result.PageResult;
 import com.sky.vo.*;
 
 import java.time.LocalDate;
@@ -57,4 +60,11 @@ public interface OrderService {
      * @return
      */
     SalesTop10ReportVO salesTop10(LocalDate begin, LocalDate end);
+
+    /**
+     * List all records from orders table limit by conditions
+     * @param ordersPageQueryDTO
+     * @return
+     */
+    PageResult page(OrdersPageQueryDTO ordersPageQueryDTO);
 }
