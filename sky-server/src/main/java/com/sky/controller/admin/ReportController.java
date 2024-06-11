@@ -2,6 +2,7 @@ package com.sky.controller.admin;
 
 import com.sky.result.Result;
 import com.sky.service.OrderService;
+import com.sky.service.ReportService;
 import com.sky.service.UserService;
 import com.sky.vo.OrderReportVO;
 import com.sky.vo.SalesTop10ReportVO;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletResponse;
 import java.time.LocalDate;
 
 @RestController
@@ -27,6 +29,8 @@ public class ReportController {
     private OrderService orderService;
     @Autowired
     private UserService userService;
+    @Autowired
+    private ReportService reportService;
 
     /**
      * turnover statistic: sum every entry valid amount within given date time interval
@@ -90,5 +94,15 @@ public class ReportController {
         log.info("[STATISTICS] Sales top 10 report from date range: {} - {}", begin, end);
         SalesTop10ReportVO salesTop10ReportVO = orderService.salesTop10(begin, end);
         return Result.success(salesTop10ReportVO);
+    }
+
+    /**
+     * export recent 30 days report
+     * @param httpServletResponse
+     */
+    @GetMapping("/export")
+    @ApiOperation("4. Export")
+    public void export(HttpServletResponse httpServletResponse){
+        reportService.export(httpServletResponse);
     }
 }

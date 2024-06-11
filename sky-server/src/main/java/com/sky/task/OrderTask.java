@@ -20,7 +20,7 @@ public class OrderTask {
      * update order status to cancel where order time lesser than current time minus 15 minute
      * in one minutes
      */
-    @Scheduled(cron = "0 * * * * ?")
+    @Scheduled(cron = "0 */5 * * * ?")
     //@Scheduled(cron = "0/5 * * * * ?")
     public void cancelOrderTask(){
         log.info("[SCHEDULED] Cancel order task trigger");
