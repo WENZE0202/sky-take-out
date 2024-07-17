@@ -3,12 +3,12 @@ sky:
     driver-class-name: com.mysql.cj.jdbc.Driver
     host: localhost
     port: 3306
-    database: sky_take_out
-    username: root
-    password: 1234
+    database: 
+    username: 
+    password: 
   alioss:
-    access-key-id: LTAI5t7NCxa1gJSa6mydf14V
-    access-key-secret: UnENbruKHvwN3jKyD8w6mZh8V9rGTM
+    access-key-id: 
+    access-key-secret: 
     endpoint: oss-ap-southeast-3.aliyuncs.com
     bucket-name: sky-itcast-my-24
   redis:
@@ -17,8 +17,8 @@ sky:
     host: localhost
     database: 10
   wechat:
-    appid: wxffaf1086e156d3b9
-    secret: 1d849126bd7d61a727400451bceb741d
+    appid: 
+    secret: 
     mchid : 1561414331
     mchSerialNo: 4B3B3DC35414AD50B1B755BAF8DE9CC7CF407606
     privateKeyFilePath: D:\pay\apiclient_key-pem
